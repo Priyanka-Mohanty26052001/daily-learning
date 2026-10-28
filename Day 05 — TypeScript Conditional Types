@@ -1,0 +1,173 @@
+# Day 05: TypeScript Conditional Types
+
+## 1. What are Conditional Types?
+
+Conditional types allow us to select a type based on a condition. They use the `extends` keyword and follow this syntax:
+
+```typescript
+type TypeName<T> = T extends SomeType ? TrueType : FalseType;
+```
+
+- `T extends SomeType`: Checks whether `T` is assignable to `SomeType`.
+- `TrueType`: The type returned when the condition is true.
+- `FalseType`: The type returned when the condition is false.
+
+## 2. Basic Example
+
+```typescript
+type IsString<T> = T extends string ? "Yes" : "No";
+
+type Result1 = IsString<string>; // "Yes"
+type Result2 = IsString<number>; // "No"
+type Result3 = IsString<"Angular">; // "Yes"
+```
+
+## 3. Conditional Types with Generics
+
+Conditional types become useful when creating reusable, type-safe utilities.
+
+```typescript
+type ApiResult<T> = T extends string
+  ? { message: T }
+  : { data: T };
+
+type StringResult = ApiResult<string>;
+// { message: string }
+
+type UserResult = ApiResult<{ id: number; name: string }>;
+// { data: { id: number; name: string } }
+```
+
+## 4. Using the `infer` Keyword
+
+The `infer` keyword allows TypeScript to infer a type within a conditional type.
+
+```typescript
+type ReturnTypeOf<T> =
+  T extends (...args: any[]) => infer R ? R : never;
+
+function getUser() {
+  return { id: 1, name: "Priyanka" };
+}
+
+type User = ReturnTypeOf<typeof getUser>;
+// { id: number; name: string }
+```
+
+Here, `infer R` extracts the return type of the function.
+
+## 5. Extracting Array Element Types
+
+```typescript
+type ElementType<T> =
+  T extends (infer U)[] ? U : never;
+
+type Numbers = ElementType<number[]>; // number
+type Names = ElementType<string[]>; // string
+```
+
+This is useful when working with arrays and generic data structures.
+
+## 6. Distributive Conditional Types
+
+When a conditional type operates on a naked generic type parameter, it distributes over union members.
+
+```typescript
+type ToArray<T> = T extends any ? T[] : never;
+
+type Result = ToArray<string | number>;
+// string[] | number[]
+```
+
+Each union member is evaluated separately.
+
+To prevent distribution, wrap the type parameter in a tuple:
+
+```typescript
+type ToArrayNonDistributive<T> =
+  [T] extends [any] ? T[] : never;
+
+type Result = ToArrayNonDistributive<string | number>;
+// (string | number)[]
+```
+
+## 7. Practical Example: API Response Types
+
+```typescript
+type ApiResponse<T> =
+  T extends string
+    ? { message: T }
+    : { data: T; success: boolean };
+
+interface User {
+  id: number;
+  name: string;
+}
+
+type UserResponse = ApiResponse<User>;
+// { data: User; success: boolean }
+
+type MessageResponse = ApiResponse<"Success">;
+// { message: "Success" }
+```
+
+Conditional types can help build reusable API response types in Angular applications.
+
+## 8. Built-in Conditional Utility Types
+
+TypeScript provides useful utility types based on conditional type behavior.
+
+```typescript
+type A = Exclude<string | number | boolean, string>;
+// number | boolean
+
+type B = Extract<string | number | boolean, string>;
+// string
+
+type C = NonNullable<string | null | undefined>;
+// string
+```
+
+- `Exclude<T, U>` removes union members assignable to `U`.
+- `Extract<T, U>` keeps union members assignable to `U`.
+- `NonNullable<T>` removes `null` and `undefined`.
+
+## 9. When Should We Use Conditional Types?
+
+- Creating reusable generic utility types.
+- Extracting function return types.
+- Transforming API response types.
+- Handling union types.
+- Building strongly typed libraries and Angular services.
+
+## 10. Practice Questions
+
+**Q1. What does a conditional type do?**
+
+It selects a type based on whether one type is assignable to another.
+
+**Q2. What does `infer` do?**
+
+It infers a type within the condition of a conditional type.
+
+**Q3. What is the result of the following?**
+
+```typescript
+type Check<T> = T extends number ? true : false;
+
+type Result = Check<string>;
+```
+
+Answer: `false`.
+
+**Q4. What is a distributive conditional type?**
+
+It applies a conditional type separately to each member of a union when the checked type is a naked generic parameter.
+
+**Q5. What is the difference between `Extract` and `Exclude`?**
+
+`Extract` keeps matching union members, whereas `Exclude` removes matching union members.
+
+## Summary
+
+Conditional types make TypeScript more expressive and type-safe. Combined with generics, `infer`, and union types, they help developers create reusable types for complex applications.
